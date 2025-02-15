@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "oceanui-test",
+  "version": "${version}",
+  "name": "OceanUI Test",
+  "description": "A test mod for OceanUI",
+  "authors": ["yolocat"],
+  "contact": {
+    "sources": "https://github.com/yolocat/OceanUI"
+  },
+  "license": "LGPL-3.0",
+  "environment": "client",
+  "mixins": ["oceanui-test.mixins.json"],
+  "depends": {
+    "minecraft": "1.8.9"
+  }
+}

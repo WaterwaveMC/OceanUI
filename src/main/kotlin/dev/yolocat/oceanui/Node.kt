@@ -1,9 +1,14 @@
-package dev.yolocat.oceanui.nodes
+package dev.yolocat.oceanui
 
-import dev.yolocat.oceanui.Renderer
+import dev.yolocat.oceanui.style.SizeParams
+import dev.yolocat.oceanui.style.Stylesheet
 
 interface Node {
 
-    fun render(renderer: Renderer)
+    val stateStore: MutableMap<Int, Any?>
+
+    fun render(x: Double, y: Double, params: SizeParams, renderer: Renderer)
+    fun style(styles: Stylesheet.() -> Unit)
+    fun getSize(params: SizeParams): Pair<Double, Double>
 
 }

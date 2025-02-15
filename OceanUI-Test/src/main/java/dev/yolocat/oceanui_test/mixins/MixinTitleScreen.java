@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(TitleScreen.class)
-public class TitleScreenMixin {
+public class MixinTitleScreen {
 
     @Inject(at = @At("HEAD"), method = "init()V", cancellable = true)
     private void init(CallbackInfo ci) {

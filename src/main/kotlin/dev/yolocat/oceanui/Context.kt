@@ -1,33 +1,22 @@
-package dev.yolocat.oceanui.context
+package dev.yolocat.oceanui
 
-import dev.yolocat.oceanui.nodes.Container
-import dev.yolocat.oceanui.nodes.Node
-
-class Context(private val parent: Container) {
+class Context(internal val parent: Container, internal val invalidate: () -> Unit) {
 
     private var stateIndex = 0
-    private var stateStore = mutableMapOf<Int, Any?>()
 
-    fun <T> remember(default: () -> T): T {
+    fun <T> remember(default: () -> T): State<T> {
         @Suppress("UNCHECKED_CAST")
-        val existing = stateStore[stateIndex] as T?
+        val existing = parent.stateStore[stateIndex] as? State<T>
+
         return if(existing != null) {
             stateIndex++
             existing
         } else {
-            val value = default.invoke()
-            stateStore[stateIndex] = value
+            val newValue = default.invoke()
+            val state = State(newValue, invalidate)
+            parent.stateStore[stateIndex] = state
             stateIndex++
-            value
-        }
-    }
-
-    fun addNode(node: Node, content: (Context) -> Unit = {}) {
-        if(parent !is Container) return
-        parent.children.add(node)
-
-        if(node is Container) {
-            content.invoke(Context(node))
+            state
         }
     }
 

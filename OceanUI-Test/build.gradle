@@ -1,0 +1,98 @@
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+    id "java"
+    id "fabric-loom" version "1.8-SNAPSHOT"
+    id "legacy-looming" version "1.8-SNAPSHOT"
+    id 'org.jetbrains.kotlin.jvm' version '2.1.10'
+}
+
+version = "1.0-SNAPSHOT"
+group = "dev.yolocat.oceanui-test"
+base.archivesName = "oceanui-test-${version}"
+
+loom {
+    runConfigs.configureEach {
+        ideConfigGenerated = true
+    }
+}
+
+switch (OperatingSystem.current()) {
+    case OperatingSystem.LINUX:
+        project.ext.lwjglNatives = "natives-linux"
+        def osArch = System.getProperty("os.arch")
+        if (osArch.startsWith("arm") || osArch.startsWith("aarch64")) {
+            project.ext.lwjglNatives += osArch.contains("64") || osArch.startsWith("armv8") ? "-arm64" : "-arm32"
+        } else if  (osArch.startsWith("ppc")) {
+            project.ext.lwjglNatives += "-ppc64le"
+        } else if  (osArch.startsWith("riscv")) {
+            project.ext.lwjglNatives += "-riscv64"
+        }
+        break
+    case OperatingSystem.MAC_OS:
+        project.ext.lwjglNatives = System.getProperty("os.arch").startsWith("aarch64") ? "natives-macos-arm64" : "natives-macos"
+        break
+    case OperatingSystem.WINDOWS:
+        def osArch = System.getProperty("os.arch")
+        project.ext.lwjglNatives = osArch.contains("64")
+                ? "natives-windows${osArch.startsWith("aarch64") ? "-arm64" : ""}"
+                : "natives-windows-x86"
+        break
+}
+
+def lwjglVersion = "3.3.2"
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "yolocat"
+        url = "https://maven.yolocat.dev/releases"
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:1.8.9"
+    mappings "net.legacyfabric:yarn:1.8.9+build.551:v2"
+    modImplementation "net.fabricmc:fabric-loader:0.16.10"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    implementation "dev.yolocat.legacy-lwjgl3:lwjgl:$lwjglVersion"
+    implementation "dev.yolocat.legacy-lwjgl3:lwjgl-stb:$lwjglVersion"
+    implementation "dev.yolocat.legacy-lwjgl3:lwjgl-nanovg:$lwjglVersion"
+
+    runtimeOnly "org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-stb:$lwjglVersion:$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-nanovg:$lwjglVersion:$lwjglNatives"
+
+    implementation project.parent
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = "UTF-8"
+    if(JavaVersion.current().isJava12Compatible()) {
+        it.options.release = 11
+    }
+}
+
+java {
+    withSourcesJar()
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${base.archivesName.get()}" }
+    }
+}
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(11)
+}
